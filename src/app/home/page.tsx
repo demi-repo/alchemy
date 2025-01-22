@@ -7,7 +7,6 @@ const Home = () => {
   const [maxCost, setMaxCost] = useState<number>(10)
   const [maxPeriod, setMaxdPeriod] = useState<number>(7)
   const [loading, setLoading] = useState(false)
-  // @typescript-eslint/no-explicit-any
   const [tokenData, setTokenData] = useState<any[]>([])
   const [errorMsg, setErrorMsg] = useState<any[]>([])
   const [stop, setStop] = useState(false)
@@ -40,23 +39,19 @@ const Home = () => {
         const data = JSON.parse(text)
         onAddError(`Réponse parsée avec succès`)
         return data
-        // @typescript-eslint/no-explicit-any
       } catch (e: any) {
         throw new Error(`Erreur de parsing JSON : ${e?.message}`)
       }
-      // @typescript-eslint/no-explicit-any
     } catch (error: any) {
       onAddError(`Erreur d'appel API : ${error?.message}`)
       throw error
     }
   }
 
-  // @typescript-eslint/no-explicit-any
   const sleep = (ms: any) => {
     return new Promise(resolve => setTimeout(resolve, parseInt(ms)))
   }
 
-  // @typescript-eslint/no-explicit-any
   const getLiquidity = async (poolAddress: any, retryCount = 0) => {
     onAddError(`Récupération de la liquidité pour le pool : ${poolAddress} (tentative ${retryCount + 1})`)
     try {
@@ -64,7 +59,6 @@ const Home = () => {
 
       onAddError(`Données de liquidité reçues : ${JSON.stringify(data)}`)
       return data?.data?.liquidity || 0
-      // @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (retryCount < 2) {
         onAddError(`Nouvelle tentative après erreur : ${error?.message}`)
@@ -75,7 +69,6 @@ const Home = () => {
     }
   }
 
-  // @typescript-eslint/no-unused-vars
   const stopSearch = async () => {
     if (loading) {
       setStop(true)
@@ -83,7 +76,6 @@ const Home = () => {
     }
   }
 
-  // @typescript-eslint/no-explicit-any
   const getTokenHolders = async (chain: any, address: any, retryCount = 0) => {
     try {
       const data = await makeApiCall(`${process.env.NEXT_PUBLIC_BASE_URL}/v2/token/${chain}/${address}/info`)
@@ -95,7 +87,6 @@ const Home = () => {
         throw new Error('Données de holders non trouvées')
       }
       return holders
-      // @typescript-eslint/no-explicit-any
     } catch (error: any) {
       onAddError(`Erreur lors de la récupération des holders (tentative ${retryCount + 1}): ${error?.message}`)
       if (retryCount < 2) {
@@ -108,7 +99,6 @@ const Home = () => {
     }
   }
 
-  // @typescript-eslint/no-unused-vars
   const formatNumber = (num: any) => {
     const value = Number(num)
     if (value === null || isNaN(value) || value === undefined) return '0'
@@ -131,7 +121,6 @@ const Home = () => {
     }).format(value)
   }
 
-  // @typescript-eslint/no-unused-vars
   const formatTimeAgo = (date: any) => {
     const now = new Date()
     const creationTime = new Date(date)
@@ -150,7 +139,6 @@ const Home = () => {
     }
   }
 
-  // @typescript-eslint/no-unused-vars
   const getLiquidityClass = (liquidity: any) => {
     const value = Number(liquidity)
     if (value >= 5) return 'liquidity-high'
@@ -158,7 +146,6 @@ const Home = () => {
     return 'liquidity-low'
   }
 
-  // @typescript-eslint/no-unused-vars
   const formatLiquidityFriendly = (num: any) => {
     const value = Number(num)
     if (value === null || isNaN(value) || value === undefined) return '0$'
@@ -213,13 +200,11 @@ const Home = () => {
             const liquidity = await getLiquidity(poolData.address)
             const holders = await getTokenHolders('ether', poolData.mainToken?.address)
             const deployers = await getDeployerAddresses(poolData.address) // [0x0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null, 0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null]
-            // @typescript-eslint/no-unused-vars
             processedPools++
 
             onAddError(`Pool ${poolData.mainToken?.symbol || 'Inconnu'} liquidité: $${liquidity}`)
 
             if (Number(liquidity) <= maxCost) {
-              // @typescript-eslint/no-unused-vars
               matchingPools++
 
               onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
@@ -228,7 +213,6 @@ const Home = () => {
               setTokenData([...data, { poolData, estimatedTimeRemaining, liquidity, dextoolsUrl, deployers, holders }])
             }
             await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
-          // @typescript-eslint/no-explicit-any
           } catch (error: any) {
             onAddError(`Erreur lors du traitement du pool ${poolData.address}: ${error?.message}`)
             await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)

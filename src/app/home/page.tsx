@@ -210,6 +210,7 @@ const Home = () => {
               onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
 
               const dextoolsUrl = `https://www.dextools.io/app/en/ether/pair-explorer/${poolData.address}`
+              console.log("###################SetTokenData###################")
               setTokenData([...data, { poolData, estimatedTimeRemaining, liquidity, dextoolsUrl, deployers, holders }])
             }
             await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
@@ -239,7 +240,6 @@ const Home = () => {
               min={0}
               type="number"
               value={maxPeriod}
-              // @typescript-eslint/no-explicit-any
               onChange={(e: any) => setMaxdPeriod(e?.target?.value)}
               className="transition-all w-full text-lg hover:opacity-90 border-[1px] border-zinc-400 rounded-md py-1 px-2"
             />
@@ -250,7 +250,6 @@ const Home = () => {
               min={0}
               type="number"
               value={maxCost}
-              // @typescript-eslint/no-explicit-any
               onChange={(e: any) => setMaxCost(e?.target?.value)}
               className="transition-all w-full text-lg hover:opacity-90 border-[1px] border-zinc-400 rounded-md py-1 px-2"
             />

@@ -4,7 +4,7 @@ import { Network, Alchemy, AssetTransfersResponse, TransactionReceipt, AssetTran
 //console.log("ALCHEMY KEY:", process.env.ALCHEMY_API_KEY);
 
 const settings = {
-  apiKey: process.env.ALCHEMY_API_KEY || "", // Replace with your Alchemy API Key
+  apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "", // Replace with your Alchemy API Key
   network: Network.ETH_MAINNET, // Adjust for the relevant network
 };
 

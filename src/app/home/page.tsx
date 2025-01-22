@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getDeployerAddresses } from '@/utils/index'
+import TokenCard from "@/components/tokenCard/TokenCard"
 
 const Home = () => {
   const [maxCost, setMaxCost] = useState<number>(10)
@@ -10,13 +11,23 @@ const Home = () => {
   const [tokenData, setTokenData] = useState<any[]>([])
   const [errorMsg, setErrorMsg] = useState<any[]>([])
   const [stop, setStop] = useState(false)
+  const errRef = useRef<HTMLDivElement>(null)
 
-  const onAddError = (t: string) => {
+  const onAddError = async (t: string) => {
     let temp = errorMsg
     let timestamp = new Date().toISOString().split('T')[1].split('.')[0];
     let text = '[' + timestamp + "] " + t
     temp.push(text)
     setErrorMsg([...temp])
+    if (errRef?.current) {
+      errRef.current.scrollTop = errRef.current.scrollHeight;
+    }
+  }
+
+  const onAddTokenData = (e: any) => {
+    let temp = tokenData
+    temp.push(e)
+    setTokenData([...temp])
   }
 
   const makeApiCall = async (url: string) => {
@@ -174,9 +185,9 @@ const Home = () => {
       const data = await makeApiCall(url)
       await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
 
-      onAddError('Démarrage de la recherche...')
-      onAddError(`Paramètres : jours=${maxPeriod}, liquiditéMax=${maxCost}`)
-      onAddError(`Plage de dates : ${fromDate} à ${toDate}`)
+      onAddError(`Démarrage de la recherche...
+      Paramètres : jours=${maxPeriod}, liquiditéMax=${maxCost}
+      Plage de dates : ${fromDate} à ${toDate}`)
 
       if (!data.data || !data.data.results) {
         throw new Error('Format de réponse API invalide')
@@ -190,6 +201,7 @@ const Home = () => {
       for (let i = 0; i < data.data.results.length; i++) {
         if (stop) {
           onAddError('Recherche arrêtée par l\'utilisateur')
+          setLoading(true)
           break
         }
         const APILimit = process.env.NEXT_PUBLIC_API_RATE_LIMIT ? parseInt(process.env.NEXT_PUBLIC_API_RATE_LIMIT) : 0
@@ -199,7 +211,7 @@ const Home = () => {
           try {
             const liquidity = await getLiquidity(poolData.address)
             const holders = await getTokenHolders('ether', poolData.mainToken?.address)
-            const deployers = await getDeployerAddresses(poolData.address) // [0x0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null, 0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null]
+            const deployers = await getDeployerAddresses(poolData.address, stop) // [0x0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null, 0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null]
             processedPools++
 
             onAddError(`Pool ${poolData.mainToken?.symbol || 'Inconnu'} liquidité: $${liquidity}`)
@@ -209,9 +221,28 @@ const Home = () => {
 
               onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
 
-              const dextoolsUrl = `https://www.dextools.io/app/en/ether/pair-explorer/${poolData.address}`
-              console.log("###################SetTokenData###################")
-              setTokenData([...data, { poolData, estimatedTimeRemaining, liquidity, dextoolsUrl, deployers, holders }])
+              let tempData = {
+                badgeText: formatTimeAgo(poolData.creationTime),
+                mainTokenName: poolData.mainToken?.name || 'Inconnu',
+                mainTokenSymbol: poolData.mainToken?.symbol || 'Inconnu',
+                holdersDisplay: holders !== null ? holders?.toLocaleString() : null,
+                dextoolsUrl: `https://www.dextools.io/app/en/ether/pair-explorer/${poolData.address}`,
+                liquidity: formatLiquidityFriendly(liquidity), //formatLiquidityFriendly(liquidity)
+                formattedLiquidity: formatNumber(liquidity),
+                sideTokenSymbol: poolData.sideToken?.symbol || 'Inconnu',
+                poolCreatedTime: new Date(poolData.creationTime).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                }),
+                mainTokenAddress: poolData.mainToken?.address || 'N/A',
+                poolAddress: poolData.address || 'N/A',
+                deployers: deployers,
+              }
+              onAddTokenData(tempData)
             }
             await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
           } catch (error: any) {
@@ -224,12 +255,12 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    console.log(tokenData)
-  }, [tokenData])
+  const onCancelSearch = () => {
+    if (!stop) setStop(true)
+  }
 
   return (
-    <div className="w-full py-10 px-20 gap-4 flex flex-col items-center">
+    <div className="transition-all w-full py-4 px-4 md:py-10 md:px-20 gap-12 flex flex-col items-center">
       <div className="w-full rounded-2xl shadow-2xl p-4 flex flex-col gap-3 items-center">
         <p className="text-3xl font-bold">DETECTEUR DE PROJETS</p>
         <p className="p-2 font-semibold rounded-md text-[#856404] bg-[#fff3cd] border-[#ffeeba] border-[1px]">{`Note : En raison des limites de l'API (1 appel/seconde), la recherche peut prendre du temps.`}</p>
@@ -254,16 +285,39 @@ const Home = () => {
               className="transition-all w-full text-lg hover:opacity-90 border-[1px] border-zinc-400 rounded-md py-1 px-2"
             />
           </div>
+          {/* {
+            !loading ?
+              <div
+                onClick={() => onSearchToken()}
+                className={`transition-all bg-[#4CAF50] text-white py-[10px] px-5 rounded-md text-lg w-max ${!loading ? " cursor-pointer hover:opacity-80" : "cursor-not-allowed opacity-50 hover:opacity-30"}`}
+              >Rechercher</div> :
+              <div
+                onClick={() => onCancelSearch()}
+                className={`transition-all bg-[#dc3545] text-white py-[10px] px-5 rounded-md text-lg w-max ${!stop ? " cursor-pointer hover:opacity-80" : "cursor-not-allowed opacity-50 hover:opacity-30"}`}
+              >Arrêter{stop ? "..." : ""}</div>
+          } */}
           <div
             onClick={() => onSearchToken()}
             className={`transition-all bg-[#4CAF50] text-white py-[10px] px-5 rounded-md text-lg w-max ${!loading ? " cursor-pointer hover:opacity-80" : "cursor-not-allowed opacity-50 hover:opacity-30"}`}
           >Rechercher</div>
         </div>
       </div>
+      {loading && <p className="text-lg font-semibold">Recherche en cours...</p>}
+      {
+        tokenData?.length > 0 &&
+        tokenData.map((e: any, index: number) => {
+          return (
+            <div className="w-full" key={index}>
+              <TokenCard data={e} />
+            </div>
+          )
+        })
+      }
       {
         errorMsg?.length > 0 &&
         <div
-          className="w-full rounded-2xl text-sm shadow-2xl p-[10px] bg-[#f8f9fa] border-[1px] border-[#ddd] rounded-lg flex flex-col gap-[1px] max-h-[300px] overflow-y-auto h-max"
+          ref={errRef}
+          className="w-full rounded-2xl text-xs shadow-2xl p-[10px] bg-[#f8f9fa] border-[1px] border-[#ddd] rounded-lg flex flex-col gap-[1px] max-h-[300px] overflow-y-auto h-max"
           style={{ lineBreak: 'anywhere' }}
         >
           {

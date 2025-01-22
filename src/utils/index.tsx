@@ -18,7 +18,7 @@ const alchemy = new Alchemy(settings);
  * @param {string} poolAddress - The contract address of the pool.
  * @returns {Promise<string[]>} - An array containing deployer addresses (null if not found).
  */
-export const getDeployerAddresses = async (poolAddress: any) => {
+export const getDeployerAddresses = async (poolAddress: any, stop: boolean) => {
   try {
     // Fetch transactions related to the contract
     const assetTransfers: AssetTransfersResponse = await alchemy.core.getAssetTransfers({
@@ -37,6 +37,7 @@ export const getDeployerAddresses = async (poolAddress: any) => {
 
     // Process each transaction
     for (let i = 0; i < assetTransfers.transfers.length; i++) {
+      if (stop) return null;
       const transfer = assetTransfers.transfers[i];
       const transactionHash = transfer.hash;
 

@@ -2,3 +2,148 @@
 @tailwind components;
 @tailwind utilities;
 
+.token-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.token-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.time-badge {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-top-right-radius: 12px;
+    font-size: 0.8em;
+}
+
+.token-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.token-links {
+    display: flex;
+    gap: 10px;
+}
+
+.token-link {
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+    font-size: 0.9em;
+    background-color: #5d48f8;
+    transition: background-color 0.2s;
+}
+
+.token-link:hover {
+    background-color: #4934e6;
+}
+
+.button-add {
+    padding: 6px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    font-size: 1.2em;
+    background-color: #488ef8;
+    transition: background-color 0.2s;
+}
+
+.button-add:hover {
+    background-color: rgb(52, 79, 230);
+}
+
+.button-hidden {
+    padding: 6px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    font-size: 1.2em;
+    background-color: #dc3545;
+    transition: background-color 0.2s;
+}
+
+.button-hidden:hover {
+    background-color: #c82333;
+}
+
+.token-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.transaction-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.info-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-weight: 500;
+    color: #2c3e50;
+    word-break: break-all;
+}
+
+.liquidity-high {
+    color: #dc3545;
+}
+
+.liquidity-medium {
+    color: #fd7e14;
+}
+
+.liquidity-low {
+    color: #28a745;
+}
+
+.liquidity-value {
+    position: relative;
+    cursor: help;
+}
+
+.liquidity-value:hover::after {
+    content: attr(data-full-value);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    z-index: 1;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

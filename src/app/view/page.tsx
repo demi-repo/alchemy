@@ -22,6 +22,19 @@ const View = () => {
         router.push('/view/' + id)
     }
 
+    const getTokenName = (index: number, deployer: string[], mainTokenName: string, poolCreatedTime: string) => {
+        let date = poolCreatedTime.split(" ")[0]
+        if (deployer[0] && deployer[1]) {
+            return "Thief - " + mainTokenName + " - " + date + " - " + (index + 1)
+        } else {
+            if (deployer[index]) {
+                return "Thief - " + mainTokenName + " - " + date
+            } else {
+                return ""
+            }
+        }
+    }
+
     const onDelete = async (id: number) => {
         const { error } = await supabase
             .from('pool')
@@ -50,66 +63,60 @@ const View = () => {
                     className="w-max px-12 h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
                 >Create</div>
             </div>
-            <table className="w-full bg-white rounded-lg overflow-hidden shadow-lg">
-                <thead className="bg-gray-800 text-white">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Index</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Pool Name</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">WALLETS</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet First Transaction</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet Next Transaction</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                    {data.map((pool, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Thief - {pool?.mainTokenName + " (" + pool?.mainTokenSymbol + ")"} - {pool?.poolCreatedTime} - {index + 1}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <span className="font-mono">
-                                    {pool?.added_at ?
-                                        new Date(pool?.added_at).toLocaleString('en-US', {
-                                            year: 'numeric',
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit'
-                                        })
-                                        : 'N/A'
-                                    }
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.poolAddress}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[0]}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[1]}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 gap-4 flex">
-                                <button
-                                    onClick={() => onView(pool?.id)}
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    View
-                                </button>
-                                <button
-                                    onClick={() => onDelete(pool?.id)}
-                                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {data.length === 0 && (
+            <div className="w-full overflow-x-auto">
+                <table className="w-full bg-white rounded-lg overflow-hidden shadow-lg">
+                    <thead className="bg-gray-800 text-white">
                         <tr>
-                            <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                                {loading ? "Loading..." : "No pools found"}
-                            </td>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Index</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Pool Name</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Pool Address</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet First Transaction</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet Next Transaction</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Name - Wallet First Transaction</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Name - Wallet Next Transaction</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Actions</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {data.map((pool, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.mainTokenName + " (" + pool?.mainTokenSymbol + ")"}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span className="font-mono">{pool?.poolCreatedTime}</span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.poolAddress}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[0]}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[1]}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getTokenName(0, pool?.deployers, pool?.mainTokenName, pool?.poolCreatedTime)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getTokenName(1, pool?.deployers, pool?.mainTokenName, pool?.poolCreatedTime)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 gap-4 flex">
+                                    <button
+                                        onClick={() => onView(pool?.id)}
+                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                    >
+                                        View
+                                    </button>
+                                    <button
+                                        onClick={() => onDelete(pool?.id)}
+                                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {data.length === 0 && (
+                            <tr>
+                                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                                    {loading ? "Loading..." : "No pools found"}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }

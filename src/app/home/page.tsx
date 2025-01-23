@@ -18,6 +18,19 @@ const Home = () => {
   const router = useRouter()
   const [autoSave, setAutoSave] = useState(false)
 
+  const getTokenName = (index: number, deployer: any, mainTokenName: any, poolCreatedTime: any) => {
+    let date = poolCreatedTime.split(" ")[0]
+    if (deployer[0] && deployer[1]) {
+      return "Thief - " + mainTokenName + " - " + date + " - " + (index + 1)
+    } else {
+      if (deployer[index]) {
+        return "Thief - " + mainTokenName + " - " + date
+      } else {
+        return ""
+      }
+    }
+  }
+
   const onAddError = async (t: string) => {
     let temp = errorMsg
     let timestamp = new Date().toISOString().split('T')[1].split('.')[0];
@@ -266,7 +279,9 @@ const Home = () => {
                   poolCreatedTime: tempData?.poolCreatedTime,
                   mainTokenAddress: tempData?.mainTokenAddress,
                   poolAddress: tempData?.poolAddress,
-                  deployers: tempData?.deployers
+                  deployers: tempData?.deployers,
+                  firstTokenName: getTokenName(0, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
+                  nextTokenName: getTokenName(1, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
                 });
 
                 if (error) {

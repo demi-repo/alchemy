@@ -40,11 +40,15 @@ const View = () => {
 
     return (
         <div className="w-full p-8 flex flex-col gap-8">
-            <div className="w-[140px] flex">
+            <div className="w-[140px] flex w-full justify-between">
                 <div
                     onClick={() => router.push('/home')}
-                    className="w-full h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
+                    className="w-max px-12 h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
                 >Back</div>
+                <div
+                    onClick={() => router.push('/view/create')}
+                    className="w-max px-12 h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
+                >Create</div>
             </div>
             <table className="w-full bg-white rounded-lg overflow-hidden shadow-lg">
                 <thead className="bg-gray-800 text-white">
@@ -53,6 +57,8 @@ const View = () => {
                         <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Pool Name</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">WALLETS</th>
+                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet First Transaction</th>
+                        <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Wallet Next Transaction</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -60,7 +66,7 @@ const View = () => {
                     {data.map((pool, index) => (
                         <tr key={index} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.mainTokenName + " (" + pool?.mainTokenSymbol + ")"}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Thief - {pool?.mainTokenName + " (" + pool?.mainTokenSymbol + ")"} - {pool?.poolCreatedTime} - {index + 1}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <span className="font-mono">
                                     {pool?.added_at ?
@@ -76,7 +82,9 @@ const View = () => {
                                     }
                                 </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${pool?.poolAddress}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.poolAddress}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[0]}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pool?.deployers[1]}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 gap-4 flex">
                                 <button
                                     onClick={() => onView(pool?.id)}

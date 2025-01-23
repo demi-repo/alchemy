@@ -108,11 +108,11 @@ const TokenCard = (props: any) => {
       <div className="transaction-info mt-[15px]">
         <div className="info-item">
           <div className="info-label">Wallet First Transaction</div>
-          <div className="info-value address">${deployers[0] || 'N/A'}</div>
+          <div className="info-value address">{deployers[0] || 'N/A'}</div>
         </div>
         <div className="info-item">
           <div className="info-label">Wallet Next Transaction</div>
-          <div className="info-value address">${deployers[1] || 'N/A'}</div>
+          <div className="info-value address">{deployers[1] || 'N/A'}</div>
         </div>
       </div>
       {

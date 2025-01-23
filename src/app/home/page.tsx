@@ -251,7 +251,7 @@ const Home = () => {
                 deployers: deployers,
               }
 
-              if (autoSaveRef.current && !alreadyExist) {
+              if (!alreadyExist) {
                 tempData.alreadyExist = true
                 console.log("Store to database")
 

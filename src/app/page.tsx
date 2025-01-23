@@ -9,19 +9,19 @@ export default function Home() {
       <div
         className="transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
         onClick={() => router.push('/home')}
-      >Module 1</div>
+      >DÉTECTEUR DE PROJETS</div>
       <div
         className="transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
         // onClick={() => router.push('/home')}
-      >Module 2</div>
+      >VISUALISATION</div>
       <div
         className="transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
         // onClick={() => router.push('/home')}
-      >Module 3</div>
+      >SUIVI WALLET</div>
       <div
         className="transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
         // onClick={() => router.push('/home')}
-      >Module 4</div>
+      >NOUVEAUX PROJETS</div>
     </div>
   );
 }

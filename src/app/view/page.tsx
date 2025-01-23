@@ -67,6 +67,9 @@ const View = () => {
           className="w-max px-12 h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
         >Create</div>
       </div>
+      <div className="w-full flex items-center justify-center">
+        <p className="text-semibold text-2xl">There are {data?.length} thieves in the database</p>
+      </div>
       <div className="w-full overflow-x-auto">
         <table className="w-full bg-white rounded-lg overflow-hidden shadow-lg">
           <thead className="bg-gray-800 text-white">

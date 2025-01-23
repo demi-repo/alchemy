@@ -1,11 +1,13 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { confirmDataExist, getDeployerAddresses } from '@/utils/index'
 import TokenCard from "@/components/tokenCard/TokenCard"
 import { useRouter } from "next/navigation"
+import { supabase } from "@/supabase"
 
 const Home = () => {
+  const autoSaveRef = useRef(false)
   const [maxCost, setMaxCost] = useState<number>(10)
   const [maxPeriod, setMaxdPeriod] = useState<number>(7)
   const [loading, setLoading] = useState(false)
@@ -14,6 +16,7 @@ const Home = () => {
   const [stop, setStop] = useState(false)
   const errRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const [autoSave, setAutoSave] = useState(false)
 
   const onAddError = async (t: string) => {
     let temp = errorMsg
@@ -223,7 +226,7 @@ const Home = () => {
 
               onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
 
-              const alreadyExist = await confirmDataExist(poolData.address);
+              let alreadyExist = await confirmDataExist(poolData.address);
 
               let tempData = {
                 alreadyExist,
@@ -247,6 +250,32 @@ const Home = () => {
                 poolAddress: poolData.address || 'N/A',
                 deployers: deployers,
               }
+
+              if (autoSaveRef.current && !alreadyExist) {
+                tempData.alreadyExist = true
+                console.log("Store to database")
+
+                const { error } = await supabase.from("pool").insert({
+                  added_at: new Date(),
+                  mainTokenName: tempData?.mainTokenName,
+                  mainTokenSymbol: tempData?.mainTokenSymbol,
+                  holdersDisplay: tempData?.holdersDisplay,
+                  liquidity: tempData?.liquidity,
+                  formattedLiquidity: tempData?.formattedLiquidity,
+                  sideTokenSymbol: tempData?.sideTokenSymbol,
+                  poolCreatedTime: tempData?.poolCreatedTime,
+                  mainTokenAddress: tempData?.mainTokenAddress,
+                  poolAddress: tempData?.poolAddress,
+                  deployers: tempData?.deployers
+                });
+
+                if (error) {
+                  console.log(error)
+                } else {
+                  console.log("this data added successfully")
+                }
+              }
+
               onAddTokenData(tempData)
             }
             await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
@@ -263,6 +292,10 @@ const Home = () => {
   const onCancelSearch = () => {
     if (!stop) setStop(true)
   }
+
+  useEffect(() => {
+    autoSaveRef.current = autoSave
+  }, [autoSave])
 
   return (
     <div className="transition-all w-full py-4 px-4 md:py-10 md:px-20 gap-12 flex flex-col items-center">
@@ -316,9 +349,9 @@ const Home = () => {
         </div>
         <div className="w-[140px] flex flex-col gap-2">
           <div
-            onClick={() => console.log('start automation')}
+            onClick={() => setAutoSave(!autoSave)}
             className="w-full h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
-          >Add automation</div>
+          >{autoSave ? "Stop automation" : "Add automation"}</div>
           <div
             onClick={() => router.push('/view')}
             className="w-full h-8 bg-[#FEFEFE] rounded-lg border-[1px] py-[2px] text-center text-md border-[#D3D3D3] transition-all cursor-pointer hover:opcaity-80"
@@ -354,7 +387,7 @@ const Home = () => {
           }
         </div>
       }
-    </div>
+    </div >
   )
 }
 

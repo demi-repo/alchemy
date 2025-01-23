@@ -8,7 +8,7 @@ import { supabase } from "@/supabase"
 
 const Home = () => {
   const autoSaveRef = useRef(false)
-  const [maxCost, setMaxCost] = useState<number>(10)
+  const [maxCost, setMaxCost] = useState<number>(50)
   const [maxPeriod, setMaxdPeriod] = useState<number>(7)
   const [loading, setLoading] = useState(false)
   const [tokenData, setTokenData] = useState<any[]>([])
@@ -198,106 +198,116 @@ const Home = () => {
       setLoading(true)
       const now = new Date()
       const fromDate = new Date(now.getTime() - (maxPeriod * 24 * 60 * 60 * 1000)).toISOString()
+      console.log(fromDate)
       const toDate = now.toISOString()
-      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/v2/pool/ether?sort=creationTime&order=desc&from=${fromDate}&to=${toDate}&page=0&pageSize=50`
-      const data = await makeApiCall(url)
+      console.log(toDate)
+      console.log(fromDate, toDate);
+      const basicUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/v2/pool/ether?sort=creationTime&order=desc&from=${fromDate}&to=${toDate}&page=0&pageSize=50`
+      const response = await makeApiCall(basicUrl)
       await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
+      const { totalPages } = response?.data
 
-      onAddError(`Démarrage de la recherche...
+      for (let i = 0; i < totalPages; i++) {
+        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/v2/pool/ether?sort=creationTime&order=desc&from=${fromDate}&to=${toDate}&page=${i}&pageSize=50`
+        const data = await makeApiCall(url)
+        await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
+
+        onAddError(`Démarrage de la recherche...
       Paramètres : jours=${maxPeriod}, liquiditéMax=${maxCost}
       Plage de dates : ${fromDate} à ${toDate}`)
 
-      if (!data.data || !data.data.results) {
-        throw new Error('Format de réponse API invalide')
-      }
-
-      onAddError(`${data.data.results.length} pools trouvés à traiter`)
-
-      const totalPools = data.data.results.length
-      let processedPools = 0
-      let matchingPools = 0
-      for (let i = 0; i < data.data.results.length; i++) {
-        if (stop) {
-          onAddError('Recherche arrêtée par l\'utilisateur')
-          setLoading(true)
-          break
+        if (!data.data || !data.data.results) {
+          throw new Error('Format de réponse API invalide')
         }
-        const APILimit = process.env.NEXT_PUBLIC_API_RATE_LIMIT ? parseInt(process.env.NEXT_PUBLIC_API_RATE_LIMIT) : 0
-        const poolData = data.data.results[i]
-        const estimatedTimeRemaining = (totalPools - i) * (APILimit / 1000)
-        if (poolData && poolData.address) {
-          try {
-            const liquidity = await getLiquidity(poolData.address)
-            const holders = await getTokenHolders('ether', poolData.mainToken?.address)
-            const deployers = await getDeployerAddresses(poolData.address, stop) // [0x0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null, 0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null]
-            processedPools++
 
-            onAddError(`Pool ${poolData.mainToken?.symbol || 'Inconnu'} liquidité: $${liquidity}`)
+        onAddError(`${data.data.results.length} pools trouvés à traiter`)
 
-            if (Number(liquidity) <= maxCost) {
-              matchingPools++
+        const totalPools = data.data.results.length
+        let processedPools = 0
+        let matchingPools = 0
+        for (let i = 0; i < data.data.results.length; i++) {
+          if (stop) {
+            onAddError('Recherche arrêtée par l\'utilisateur')
+            setLoading(true)
+            break
+          }
+          const APILimit = process.env.NEXT_PUBLIC_API_RATE_LIMIT ? parseInt(process.env.NEXT_PUBLIC_API_RATE_LIMIT) : 0
+          const poolData = data.data.results[i]
+          const estimatedTimeRemaining = (totalPools - i) * (APILimit / 1000)
+          if (poolData && poolData.address) {
+            try {
+              const liquidity = await getLiquidity(poolData.address)
+              const holders = await getTokenHolders('ether', poolData.mainToken?.address)
+              const deployers = await getDeployerAddresses(poolData.address, stop) // [0x0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null, 0xBDf8ab3Ab62DDBd9aE12Aae034B99ff042788845 || null]
+              processedPools++
 
-              onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
+              onAddError(`Pool ${poolData.mainToken?.symbol || 'Inconnu'} liquidité: $${liquidity}`)
 
-              let alreadyExist = await confirmDataExist(poolData.address);
+              if (Number(liquidity) <= maxCost) {
+                matchingPools++
 
-              let tempData = {
-                alreadyExist,
-                badgeText: formatTimeAgo(poolData.creationTime),
-                mainTokenName: poolData.mainToken?.name || 'Inconnu',
-                mainTokenSymbol: poolData.mainToken?.symbol || 'Inconnu',
-                holdersDisplay: holders !== null ? holders?.toLocaleString() : null,
-                dextoolsUrl: `https://www.dextools.io/app/en/ether/pair-explorer/${poolData.address}`,
-                liquidity: formatLiquidityFriendly(liquidity), //formatLiquidityFriendly(liquidity)
-                formattedLiquidity: formatNumber(liquidity),
-                sideTokenSymbol: poolData.sideToken?.symbol || 'Inconnu',
-                poolCreatedTime: new Date(poolData.creationTime).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-                }),
-                mainTokenAddress: poolData.mainToken?.address || 'N/A',
-                poolAddress: poolData.address || 'N/A',
-                deployers: deployers,
-              }
+                onAddError(`Pool trouvé : ${poolData.mainToken?.symbol} avec liquidité $${liquidity}`)
 
-              if (!alreadyExist) {
-                tempData.alreadyExist = true
-                console.log("Store to database")
+                let alreadyExist = await confirmDataExist(poolData.address);
 
-                const { error } = await supabase.from("pool").insert({
-                  added_at: new Date(),
-                  mainTokenName: tempData?.mainTokenName,
-                  mainTokenSymbol: tempData?.mainTokenSymbol,
-                  holdersDisplay: tempData?.holdersDisplay,
-                  liquidity: tempData?.liquidity,
-                  formattedLiquidity: tempData?.formattedLiquidity,
-                  sideTokenSymbol: tempData?.sideTokenSymbol,
-                  poolCreatedTime: tempData?.poolCreatedTime,
-                  mainTokenAddress: tempData?.mainTokenAddress,
-                  poolAddress: tempData?.poolAddress,
-                  deployers: tempData?.deployers,
-                  firstTokenName: getTokenName(0, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
-                  nextTokenName: getTokenName(1, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
-                });
-
-                if (error) {
-                  console.log(error)
-                } else {
-                  console.log("this data added successfully")
+                let tempData = {
+                  alreadyExist,
+                  badgeText: formatTimeAgo(poolData.creationTime),
+                  mainTokenName: poolData.mainToken?.name || 'Inconnu',
+                  mainTokenSymbol: poolData.mainToken?.symbol || 'Inconnu',
+                  holdersDisplay: holders !== null ? holders?.toLocaleString() : null,
+                  dextoolsUrl: `https://www.dextools.io/app/en/ether/pair-explorer/${poolData.address}`,
+                  liquidity: formatLiquidityFriendly(liquidity), //formatLiquidityFriendly(liquidity)
+                  formattedLiquidity: formatNumber(liquidity),
+                  sideTokenSymbol: poolData.sideToken?.symbol || 'Inconnu',
+                  poolCreatedTime: new Date(poolData.creationTime).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  }),
+                  mainTokenAddress: poolData.mainToken?.address || 'N/A',
+                  poolAddress: poolData.address || 'N/A',
+                  deployers: deployers,
                 }
-              }
 
-              onAddTokenData(tempData)
+                if (!alreadyExist) {
+                  tempData.alreadyExist = true
+                  console.log("Store to database")
+
+                  const { error } = await supabase.from("pool").insert({
+                    added_at: new Date(),
+                    mainTokenName: tempData?.mainTokenName,
+                    mainTokenSymbol: tempData?.mainTokenSymbol,
+                    holdersDisplay: tempData?.holdersDisplay,
+                    liquidity: tempData?.liquidity,
+                    formattedLiquidity: tempData?.formattedLiquidity,
+                    sideTokenSymbol: tempData?.sideTokenSymbol,
+                    poolCreatedTime: tempData?.poolCreatedTime,
+                    mainTokenAddress: tempData?.mainTokenAddress,
+                    poolAddress: tempData?.poolAddress,
+                    deployers: tempData?.deployers,
+                    firstTokenName: getTokenName(0, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
+                    nextTokenName: getTokenName(1, tempData?.deployers, tempData?.mainTokenName, tempData?.poolCreatedTime),
+                  });
+
+                  if (error) {
+                    console.log(error)
+                  } else {
+                    console.log("this data added successfully")
+                  }
+                }
+
+                onAddTokenData(tempData)
+              }
+              await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
+            } catch (error: any) {
+              onAddError(`Erreur lors du traitement du pool ${poolData.address}: ${error?.message}`)
+              await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
+              continue
             }
-            await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
-          } catch (error: any) {
-            onAddError(`Erreur lors du traitement du pool ${poolData.address}: ${error?.message}`)
-            await sleep(process.env.NEXT_PUBLIC_API_RATE_LIMIT)
-            continue
           }
         }
       }

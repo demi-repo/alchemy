@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+.background {
+    background-image: url("/assets/background.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
 .token-card {
     border: 1px solid #ddd;
     padding: 20px;

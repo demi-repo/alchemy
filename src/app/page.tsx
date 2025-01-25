@@ -12,7 +12,7 @@ export default function Home() {
       >DÉTECTEUR DE PROJETS</div>
       <div
         className="text-2xl font-semibold opacity-75 transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
-        // onClick={() => router.push('/home')}
+        onClick={() => router.push('/visualization')}
       >VISUALISATION</div>
       <div
         className="text-2xl font-semibold opacity-75 transition-all cursor-pointer hover:opacity-80 p-20 border-[1px] border-zinc-600 hover:border-zinc-800 rounded-3xl bg-zinc-100 hover:bg-zinc-300"
